@@ -7,6 +7,7 @@
 
 #include "mgos.h"
 #include "mgos_i2c.h"
+#include "gpio.h"
 
 //////////////////////////////////////////////////////////////////////
 //Constants
@@ -38,37 +39,6 @@
 #define OLATA 0x0A	//Output latch value
 #define OLATB 0x1A	
 
-//GPIO pins
-//[REG,BTIMASK]
-#define IO_A0 0x0901
-#define IO_A1 0x0902
-#define IO_A2 0x0904
-#define IO_A3 0x0908
-#define IO_A4 0x0910
-#define IO_A5 0x0920
-#define IO_A6 0x0940
-#define IO_A7 0x0980
-#define IO_B0 0x1901
-#define IO_B1 0x1902
-#define IO_B2 0x1904
-#define IO_B3 0x1908
-#define IO_B4 0x1910
-#define IO_B5 0x1920
-#define IO_B6 0x1940
-#define IO_B7 0x1980
-
-//Arduino style pin mode
-const enum io_mode{
-	INPUT,
-	OUTPUT
-};
-
-//Arduino style pin levels
-const enum io_level{
-	HIGH,
-	LOW
-};
-
 //////////////////////////////////////////////////////////////////////
 
 //Return I2C address for writing
@@ -83,31 +53,55 @@ uint8_t read_adrs(void){
 
 //Read all pins
 //Returns a bitmask of GPIO [B7..B0,A7..A0]
-uint16_t digitalReadReg(void){
+uint16_t digitalReadAll(void){
 
 	void *i2c = mgos_i2c_get_global();
 
 	//read bank A
-	uint8_t gpio_a = mgos_i2c_read_reg_b(i2c,read_adrs(),GPIOA);
-	if (gpio_a==0){
+	int gpio_a = mgos_i2c_read_reg_b(i2c,read_adrs(),GPIOA);
+	if (gpio_a==-1){
 		LOG(LL_ERROR,("Error reading GPIO bank A state"));
+		mgos_i2c_close(i2c);
+		return 0;
 	}
 	
 	//read bank B
-	uint8_t gpio_b = = mgos_i2c_read_reg_b(i2c,read_adrs(),GPIOB);
-	if (gpio_b==0){
+	int gpio_b = mgos_i2c_read_reg_b(i2c,read_adrs(),GPIOB);
+	if (gpio_b==-1){
                 LOG(LL_ERROR,("Error reading GPIO bank B state"));
+		mgos_i2c_close(i2c);
+		return 0;
         }
 
 	mgos_i2c_close(i2c);
-
-	return ((gpio_b << 8) | gpio_a);
+	
+	uint8_t out_b=gpio_b&0xFF;
+	uint8_t out_a=gpio_a&0xFF;
+	return ((out_b << 8) | out_a);
 
 }
 
 //Write to all pins
 //pin_mask: bitmask to write, in format {GPIO bank B,GPIO bank A}
 void digitalWriteAll(uint16_t pin_mask){
+	
+	void *i2c = mgos_i2c_get_global();
+        uint8_t pins_b = (pin_mask >> 8);    //mask for GPIO bank B
+        uint8_t pins_a = pin_mask|0x00FF;        //mask for GPIO bank A
+
+        //write bank A
+        bool gpio_a = mgos_i2c_write_reg_b(i2c,read_adrs(),GPIOA,pins_a);
+        if (gpio_a){
+                LOG(LL_ERROR,("Error writing GPIO bank A state"));
+        }
+
+        //write bank B
+        bool gpio_b = mgos_i2c_write_reg_b(i2c,read_adrs(),GPIOB,pins_b);
+        if (gpio_b){
+                LOG(LL_ERROR,("Error writing GPIO bank B state"));
+        }
+
+        mgos_i2c_close(i2c);
 
 }
 
@@ -137,7 +131,7 @@ void gpio_init(void){
 //Arduino-style pin mode select
 //pin: the pin to set
 //mode: INPUT/OUTPUT
-void pinMode(uint16_t pin,io_mode mode){
+void pinMode(uint16_t pin,bool mode){
 
 	uint8_t dir_reg = ((pin >> 8)&0xF0);    //direction register, IODIRA or IODIRB
 	uint8_t write_mask = pin|0x00FF;	//bit mask for writing to register
@@ -163,14 +157,44 @@ void pinMode(uint16_t pin,io_mode mode){
 //Arduino-style pin write
 //pin: the pin to write
 //level: HIGH/LOW
-void digitalWrite(uint16_t pin,io_level level){
+void digitalWrite(uint16_t pin,bool level){
+
+	uint8_t dir_reg = (pin >> 8);    	//IO register, GPIOA or GPIOB
+        uint8_t write_mask = pin|0x00FF;        //bit mask for writing to register
+        void *i2c = mgos_i2c_get_global();
+
+        uint8_t cur_mask = mgos_i2c_read_reg_b(i2c,read_adrs(),dir_reg);             //current register state
+
+
+        switch(level){
+                //Input -> set bits
+                case HIGH:
+                        mgos_i2c_write_reg_b(i2c,write_adrs(),dir_reg,(cur_mask|write_mask));
+                //Output -> unset bits
+                case LOW:
+                        mgos_i2c_write_reg_b(i2c,write_adrs(),dir_reg,(cur_mask&(~write_mask)));
+
+        }
+
+        mgos_i2c_close(i2c);
+
 
 }
 
 //Arduino-style pin read
 //pin: the pin to read
 //returns HIGH/LOW
-io_level digitalRead(uint16_t pin){
+bool digitalRead(uint16_t pin){
+
+	uint8_t dir_reg = (pin >> 8);           //IO register, GPIOA or GPIOB
+        uint8_t read_mask = pin|0x00FF;        //bit mask for reading from register
+        void *i2c = mgos_i2c_get_global();
+
+        uint8_t cur_mask = mgos_i2c_read_reg_b(i2c,read_adrs(),dir_reg);             //current register state
+
+        mgos_i2c_close(i2c);
+
+	return ((cur_mask&read_mask) && 1);
 
 }
 

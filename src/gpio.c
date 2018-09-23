@@ -90,13 +90,13 @@ void digitalWriteAll(uint16_t pin_mask){
         uint8_t pins_a = pin_mask|0x00FF;        //mask for GPIO bank A
 
         //write bank A
-        bool gpio_a = mgos_i2c_write_reg_b(i2c,read_adrs(),GPIOA,pins_a);
+        bool gpio_a = mgos_i2c_write_reg_b(i2c,write_adrs(),GPIOA,pins_a);
         if (gpio_a){
                 LOG(LL_ERROR,("Error writing GPIO bank A state"));
         }
 
         //write bank B
-        bool gpio_b = mgos_i2c_write_reg_b(i2c,read_adrs(),GPIOB,pins_b);
+        bool gpio_b = mgos_i2c_write_reg_b(i2c,write_adrs(),GPIOB,pins_b);
         if (gpio_b){
                 LOG(LL_ERROR,("Error writing GPIO bank B state"));
         }

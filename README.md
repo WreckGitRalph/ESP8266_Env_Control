@@ -16,5 +16,6 @@ This is an environment control system, intended for a greenhouse, terrarium, etc
 ## System Diagram
 
 High level hardware overview:
+
 ![System](/Diagram1.png)
 

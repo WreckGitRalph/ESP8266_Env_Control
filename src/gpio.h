@@ -5,6 +5,8 @@
  * 2018
  */
 
+#include "stdint.h"
+
 //////////////////////////////////////////////////////////////////////
 //Constants
 //////////////////////////////////////////////////////////////////////
@@ -58,15 +60,15 @@ void digitalWriteAll(uint16_t pin_mask);
 //In:	pin: the GPIO pin to set the mode of (IO_A1, IO_A2, etc)
 //	mode: INPUT/OUTPUT
 //Out: 	none
-void pinMode(uint16_t pin,bool mode);
+void pinMode(uint16_t pin, _Bool mode);
 
 //Arduino-style pin write
 //In: 	pin: the GPIO pin for writing to (IO_A0, IO_A1, etc)
 //	level: HIGH/LOW
 //Out:	none
-void digitalWrite(uint16_t pin,bool level);
+void digitalWrite(uint16_t pin, _Bool level);
 
 //Arduino-style pin read
 //In:	pin: the GPIO pin to read from (IO_A1, IO_A2, etc)
 //Out:	HIGH/LOW
-bool digitalRead(uint16_t pin);
+_Bool digitalRead(uint16_t pin);

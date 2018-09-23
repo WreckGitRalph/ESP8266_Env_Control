@@ -1,4 +1,4 @@
-#include gpio.h
+#include "gpio.h"
 
 //LCD1602 GPIO mapping
 #define LCDRS  IO_A7
@@ -26,8 +26,8 @@ typedef enum {	//flip bits because I wired the LCD weirdly
 } LCD_instr;
 
 typedef enum {
-	8BIT,
-	4BIT
+	BIT8,
+	BIT4
 } mode;
 
 void write_line(char lcd_data[]);

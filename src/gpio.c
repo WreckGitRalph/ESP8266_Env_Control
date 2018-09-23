@@ -8,6 +8,7 @@
 #include "mgos.h"
 #include "mgos_i2c.h"
 #include "gpio.h"
+#include "stdint.h"
 
 //////////////////////////////////////////////////////////////////////
 //Constants
@@ -90,13 +91,13 @@ void digitalWriteAll(uint16_t pin_mask){
         uint8_t pins_a = pin_mask|0x00FF;        //mask for GPIO bank A
 
         //write bank A
-        bool gpio_a = mgos_i2c_write_reg_b(i2c,write_adrs(),GPIOA,pins_a);
+        _Bool gpio_a = mgos_i2c_write_reg_b(i2c,write_adrs(),GPIOA,pins_a);
         if (gpio_a){
                 LOG(LL_ERROR,("Error writing GPIO bank A state"));
         }
 
         //write bank B
-        bool gpio_b = mgos_i2c_write_reg_b(i2c,write_adrs(),GPIOB,pins_b);
+        _Bool gpio_b = mgos_i2c_write_reg_b(i2c,write_adrs(),GPIOB,pins_b);
         if (gpio_b){
                 LOG(LL_ERROR,("Error writing GPIO bank B state"));
         }
@@ -131,7 +132,7 @@ void gpio_init(void){
 //Arduino-style pin mode select
 //pin: the pin to set
 //mode: INPUT/OUTPUT
-void pinMode(uint16_t pin,bool mode){
+void pinMode(uint16_t pin, _Bool mode){
 
 	uint8_t dir_reg = ((pin >> 8)&0xF0);    //direction register, IODIRA or IODIRB
 	uint8_t write_mask = pin|0x00FF;	//bit mask for writing to register
@@ -157,7 +158,7 @@ void pinMode(uint16_t pin,bool mode){
 //Arduino-style pin write
 //pin: the pin to write
 //level: HIGH/LOW
-void digitalWrite(uint16_t pin,bool level){
+void digitalWrite(uint16_t pin, _Bool level){
 
 	uint8_t dir_reg = (pin >> 8);    	//IO register, GPIOA or GPIOB
         uint8_t write_mask = pin|0x00FF;        //bit mask for writing to register
@@ -184,7 +185,7 @@ void digitalWrite(uint16_t pin,bool level){
 //Arduino-style pin read
 //pin: the pin to read
 //returns HIGH/LOW
-bool digitalRead(uint16_t pin){
+_Bool digitalRead(uint16_t pin){
 
 	uint8_t dir_reg = (pin >> 8);           //IO register, GPIOA or GPIOB
         uint8_t read_mask = pin|0x00FF;        //bit mask for reading from register

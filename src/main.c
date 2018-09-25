@@ -16,8 +16,13 @@
  */
 
 #include "mgos.h"
+#include "gpio.h"
+#include "LCD.h"
 
 enum mgos_app_init_result mgos_app_init(void) {
-  LOG(LL_INFO, ("Hi there"));
+  gpio_init();
+  init_lcd();
+  LOG(LL_INFO, ("App initialized"));
+//  write_line("Test");
   return MGOS_APP_INIT_SUCCESS;
 }

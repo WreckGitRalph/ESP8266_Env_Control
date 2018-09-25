@@ -8,7 +8,7 @@
 
 #include "gpio.h"
 #include "LCD.h"
-#include "mgos_system.h"
+#include "mgos.h"
 #include "stdint.h"
 
 /////////////////////////////////////////
@@ -19,6 +19,7 @@
 ////////////////////////////////////////
 void lcd_busy_wait()
 //do nothing until LCD is no longer busy
+//(not used in this implementation)
 {
 	pinMode(D7, INPUT);
 
@@ -27,7 +28,7 @@ void lcd_busy_wait()
 
 	while (digitalRead(D7) == 1)
 	{
-//		printf("LCD Busy\n");
+		cs_log_printf("LCD Busy\n");
 		digitalWrite(LCDE, 0);
 		digitalWrite(LCDE, 1);
 		mgos_msleep(1);
@@ -41,7 +42,7 @@ void lcd_busy_wait()
 //Write a character to the LCD
 //
 //in:	lcd_data: the register to write character data from
-//	write_mode: either BIT8 or BIT4
+//	write_mode: either BITS8 or BITS4
 //out:	none
 ///////////////////////////////////////////////////////////
 void write_char(char lcd_data, mode write_mode)
@@ -51,16 +52,15 @@ void write_char(char lcd_data, mode write_mode)
         uint16_t gpio_mask=0xFFC3;              //mask pins A5-A2 used for LCD data
 
         switch (write_mode){
-                case BIT8:
+                case BITS8:
                         //we only use 4-bit for this device, so drop the 4 least significant bits and write to gpio     
-        //note: find mongooseOS equivalent for freeRTOS function                
-	//		printf("Writing %d to LCD\n",inst);
+			cs_log_printf("Writing %d to LCD\n",lcd_data);
                         gpio_mask |= ((lcd_data & 0x0F) << 2);
                         digitalWriteAll(gpio_state & gpio_mask);
                         break;
-                case BIT4:
+                case BITS4:
                         //write MSB first, then LSB
-        //              printf("Writing %d to LCD\n",inst);
+                        cs_log_printf("Writing %d to LCD\n",lcd_data);
                         gpio_mask |= ((lcd_data & 0x0F) << 2);
                         digitalWriteAll(gpio_state & gpio_mask);
 
@@ -68,7 +68,8 @@ void write_char(char lcd_data, mode write_mode)
                         digitalWrite(LCDE,1);
                         mgos_msleep(1);
                         digitalWrite(LCDE,0);
-                        lcd_busy_wait();
+                        //lcd_busy_wait();
+			mgos_msleep(1);
 
                         gpio_mask |= ((lcd_data & 0xF0) >> 2);
                         digitalWriteAll(gpio_state & gpio_mask);
@@ -80,14 +81,15 @@ void write_char(char lcd_data, mode write_mode)
     	digitalWrite(LCDE,1);
 	mgos_msleep(1);
     	digitalWrite(LCDE,0);
-	lcd_busy_wait();
+	//lcd_busy_wait();
+	mgos_msleep(1);
 }
 
 
 ////////////////////////////////////////
 //write an instruction to the LCD
 //in: 	instr: the instruction to write
-//	write_mode: either BIT8 or BIT4
+//	write_mode: either BITS8 or BITS4
 //out: 	none
 ////////////////////////////////////////
 void write_inst(LCD_instr inst,mode write_mode)
@@ -97,15 +99,15 @@ void write_inst(LCD_instr inst,mode write_mode)
 	uint16_t gpio_mask=0xFFC3;		//mask pins A5-A2 used for LCD data
 	
 	switch (write_mode){
-		case BIT8:
+		case BITS8:
 			//we only use 4-bit for this device, so drop the 4 least significant bits and write to gpio	
-//			printf("Writing %d to LCD\n",inst);
+			cs_log_printf("Writing %d to LCD\n",inst);
 			gpio_mask |= ((inst & 0x0F) << 2);
 			digitalWriteAll(gpio_state & gpio_mask);
 			break;
-		case BIT4:
+		case BITS4:
 			//write MSB first, then LSB
-//			printf("Writing %d to LCD\n",inst);
+			cs_log_printf("Writing %d to LCD\n",inst);
 			gpio_mask |= ((inst & 0x0F) << 2);
                         digitalWriteAll(gpio_state & gpio_mask);
 		
@@ -113,7 +115,8 @@ void write_inst(LCD_instr inst,mode write_mode)
 		        digitalWrite(LCDE,1);
 			mgos_msleep(1);
 		        digitalWrite(LCDE,0);
-		        lcd_busy_wait();
+		        //lcd_busy_wait();
+			mgos_msleep(1);
 
 			gpio_mask |= ((inst & 0xF0) >> 2);
                         digitalWriteAll(gpio_state & gpio_mask);
@@ -125,7 +128,8 @@ void write_inst(LCD_instr inst,mode write_mode)
     	digitalWrite(LCDE,1);
 	mgos_msleep(1);
     	digitalWrite(LCDE,0);
-	lcd_busy_wait();
+	//lcd_busy_wait();
+	mgos_msleep(1);
 }
 
 ////////////////////////////////////////////////////
@@ -137,9 +141,9 @@ void write_inst(LCD_instr inst,mode write_mode)
 void write_line(char lcd_data[])
 {
 	//reset line first
-	write_inst(CURSOR_RETURN,BIT4);
+	write_inst(CURSOR_RETURN,BITS4);
 	for (int i=0;lcd_data[i]!='\0';i++){
-		write_char(lcd_data[i],BIT4);
+		write_char(lcd_data[i],BITS4);
 	}
 }
 
@@ -149,16 +153,18 @@ void init_lcd()
 //make sure we've waited 50ms after power on
 	mgos_msleep(50);
 //startup procedure
-	write_inst(INITIALIZE,BIT8);
+	write_inst(INITIALIZE,BITS8);
 	mgos_msleep(20);
-	write_inst(INITIALIZE,BIT8);
+	write_inst(INITIALIZE,BITS8);
         mgos_msleep(20);
-        write_inst(INITIALIZE,BIT8);
+        write_inst(INITIALIZE,BITS8);
         mgos_msleep(20);
-	write_inst(CONFIGURE_SCREEN_4BIT,BIT4);
-	lcd_busy_wait();
-	write_inst(SCREEN_CLEAR,BIT4);
-	lcd_busy_wait();
+	write_inst(CONFIGURE_SCREEN_4BIT,BITS4);
+	//lcd_busy_wait();
+	mgos_msleep(1);
+	write_inst(SCREEN_CLEAR,BITS4);
+	//lcd_busy_wait();
+	mgos_msleep(1);
 
 }
 

@@ -14,7 +14,7 @@
 //Constants
 //////////////////////////////////////////////////////////////////////
 
-#define I2C_ADRS 0x42	//device address=0100001x
+#define I2C_ADRS 0x42	//device address + R/W bit: 0100001x
 
 //MCP23017 registers
 #define IODIRA 0x00	//I/O direction 
@@ -56,13 +56,13 @@ uint8_t read_adrs(void){
 //Returns a bitmask of GPIO [B7..B0,A7..A0]
 uint16_t digitalReadAll(void){
 
-	void *i2c = mgos_i2c_get_global();
+	struct mgos_i2c *i2c = mgos_i2c_get_global();
 
 	//read bank A
 	int gpio_a = mgos_i2c_read_reg_b(i2c,read_adrs(),GPIOA);
 	if (gpio_a==-1){
 		LOG(LL_ERROR,("Error reading GPIO bank A state"));
-		mgos_i2c_close(i2c);
+//		mgos_i2c_close(i2c);
 		return 0;
 	}
 	
@@ -70,11 +70,11 @@ uint16_t digitalReadAll(void){
 	int gpio_b = mgos_i2c_read_reg_b(i2c,read_adrs(),GPIOB);
 	if (gpio_b==-1){
                 LOG(LL_ERROR,("Error reading GPIO bank B state"));
-		mgos_i2c_close(i2c);
+//		mgos_i2c_close(i2c);
 		return 0;
         }
 
-	mgos_i2c_close(i2c);
+//	mgos_i2c_close(i2c);
 	
 	uint8_t out_b=gpio_b&0xFF;
 	uint8_t out_a=gpio_a&0xFF;
@@ -86,9 +86,9 @@ uint16_t digitalReadAll(void){
 //pin_mask: bitmask to write, in format {GPIO bank B,GPIO bank A}
 void digitalWriteAll(uint16_t pin_mask){
 	
-	void *i2c = mgos_i2c_get_global();
+	struct mgos_i2c *i2c = mgos_i2c_get_global();
         uint8_t pins_b = (pin_mask >> 8);    //mask for GPIO bank B
-        uint8_t pins_a = pin_mask|0x00FF;        //mask for GPIO bank A
+        uint8_t pins_a = pin_mask & 0x00FF;        //mask for GPIO bank A
 
         //write bank A
         _Bool gpio_a = mgos_i2c_write_reg_b(i2c,write_adrs(),GPIOA,pins_a);
@@ -102,7 +102,12 @@ void digitalWriteAll(uint16_t pin_mask){
                 LOG(LL_ERROR,("Error writing GPIO bank B state"));
         }
 
-        mgos_i2c_close(i2c);
+	cs_log_printf("Done writing");
+
+//closing connection crashes the os, look into this
+//        mgos_i2c_close(i2c);
+
+//	cs_log_printf("I2C connection closed");
 
 }
 
@@ -125,7 +130,7 @@ void gpio_init(void){
 		}
 	}
 			
-	mgos_i2c_close(i2c);
+//	mgos_i2c_close(i2c);
 
 }
 
@@ -136,7 +141,7 @@ void pinMode(uint16_t pin, _Bool mode){
 
 	uint8_t dir_reg = ((pin >> 8)&0xF0);    //direction register, IODIRA or IODIRB
 	uint8_t write_mask = pin|0x00FF;	//bit mask for writing to register
-	void *i2c = mgos_i2c_get_global();
+	struct mgos_i2c *i2c = mgos_i2c_get_global();
 
         uint8_t cur_mask = mgos_i2c_read_reg_b(i2c,read_adrs(),dir_reg);             //current register state
 
@@ -151,7 +156,7 @@ void pinMode(uint16_t pin, _Bool mode){
 
 	}
 
-	mgos_i2c_close(i2c);
+//	mgos_i2c_close(i2c);
 	
 }
 
@@ -162,7 +167,7 @@ void digitalWrite(uint16_t pin, _Bool level){
 
 	uint8_t dir_reg = (pin >> 8);    	//IO register, GPIOA or GPIOB
         uint8_t write_mask = pin|0x00FF;        //bit mask for writing to register
-        void *i2c = mgos_i2c_get_global();
+        struct mgos_i2c *i2c = mgos_i2c_get_global();
 
         uint8_t cur_mask = mgos_i2c_read_reg_b(i2c,read_adrs(),dir_reg);             //current register state
 
@@ -177,7 +182,7 @@ void digitalWrite(uint16_t pin, _Bool level){
 
         }
 
-        mgos_i2c_close(i2c);
+//        mgos_i2c_close(i2c);
 
 
 }
@@ -189,11 +194,11 @@ _Bool digitalRead(uint16_t pin){
 
 	uint8_t dir_reg = (pin >> 8);           //IO register, GPIOA or GPIOB
         uint8_t read_mask = pin|0x00FF;        //bit mask for reading from register
-        void *i2c = mgos_i2c_get_global();
+        struct mgos_i2c *i2c = mgos_i2c_get_global();
 
         uint8_t cur_mask = mgos_i2c_read_reg_b(i2c,read_adrs(),dir_reg);             //current register state
 
-        mgos_i2c_close(i2c);
+//        mgos_i2c_close(i2c);
 
 	return ((cur_mask&read_mask) && 1);
 

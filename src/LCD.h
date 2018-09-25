@@ -26,8 +26,8 @@ typedef enum {	//flip bits because I wired the LCD weirdly
 } LCD_instr;
 
 typedef enum {
-	BIT8,
-	BIT4
+	BITS8,
+	BITS4
 } mode;
 
 void write_line(char lcd_data[]);

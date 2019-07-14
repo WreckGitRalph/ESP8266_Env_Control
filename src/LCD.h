@@ -16,6 +16,7 @@ typedef enum {	//flip bits because I wired the LCD weirdly
         SET_CURSOR_LEFT_APPOINT=0xA0, //0x05 
         SET_CURSOR_RIGHT=0x60, //0x06
         SET_CURSOR_RIGHT_APPOINT=0xE0, //0x07
+	SET_DISPLAY_ON=0x30, //0x0C
         SHIFT_CURSOR_LEFT=0x08, //0x10
         SHIFT_CURSOR_RIGHT=0x28, //0x14
         SHIFT_DISPLAY_LEFT=0x18, //0x18

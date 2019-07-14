@@ -187,6 +187,8 @@ void init_lcd()
 	mgos_msleep(10);
 	write_inst(CONFIGURE_SCREEN_4BIT,BITS4);
 	mgos_msleep(5);
+	write_inst(SET_DISPLAY_ON,BITS4);
+        mgos_msleep(5);
 	write_inst(SCREEN_CLEAR,BITS4);
 	mgos_msleep(5);
 

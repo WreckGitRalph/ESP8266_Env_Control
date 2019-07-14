@@ -31,6 +31,7 @@
 #define IO_B7 0x1980
 
 //Arduino style pin mode
+#define INPUT_PULLUP 2
 #define INPUT 1
 #define OUTPUT 0
 
@@ -58,9 +59,9 @@ void digitalWriteAll(uint16_t pin_mask);
 
 //Arduino-style pin mode select
 //In:	pin: the GPIO pin to set the mode of (IO_A1, IO_A2, etc)
-//	mode: INPUT/OUTPUT
+//	mode: INPUT/OUTPUT/INPUT_PULLUP
 //Out: 	none
-void pinMode(uint16_t pin, _Bool mode);
+void pinMode(uint16_t pin, uint8_t mode);
 
 //Arduino-style pin write
 //In: 	pin: the GPIO pin for writing to (IO_A0, IO_A1, etc)

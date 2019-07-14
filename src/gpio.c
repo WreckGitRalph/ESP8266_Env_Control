@@ -136,22 +136,30 @@ void gpio_init(void){
 //Arduino-style pin mode select
 //pin: the pin to set
 //mode: INPUT/OUTPUT
-void pinMode(uint16_t pin, _Bool mode){
+void pinMode(uint16_t pin, uint8_t mode){
 
-	uint8_t dir_reg = ((pin >> 8)&0xF0);    //direction register, IODIRA or IODIRB
+	uint8_t dir_reg = ((pin >> 8) & 0xF0);    //direction register, IODIRA or IODIRB
+	uint8_t gppu_reg = ( ((pin >> 8) & 0x10) | 0x06 ); //GPIO pull-up register, GPPUA or GPPUB
 	uint8_t write_mask = pin&0x00FF;	//bit mask for writing to register
 	struct mgos_i2c *i2c = mgos_i2c_get_global();
 
-        uint8_t cur_mask = mgos_i2c_read_reg_b(i2c,read_adrs(),dir_reg);             //current register state
+        uint8_t cur_dir_mask = mgos_i2c_read_reg_b( i2c, read_adrs(), dir_reg );	//current dir register state
+	uint8_t cur_pu_mask = mgos_i2c_read_reg_b( i2c, read_adrs(), gppu_reg );	//current pu register state
 
 	switch(mode){
-		//Input -> set bits
+		//Input -> set dir bits, unset pu bits
 		case INPUT:
-			mgos_i2c_write_reg_b(i2c,write_adrs(),dir_reg,(cur_mask|write_mask));
+			mgos_i2c_write_reg_b( i2c, write_adrs(), dir_reg, (cur_dir_mask|write_mask) );
+			mgos_i2c_write_reg_b( i2c, write_adrs(), dir_reg, (cur_pu_mask&(~write_mask)) );
 			break;
 		//Output -> unset bits
 		case OUTPUT:
-                        mgos_i2c_write_reg_b(i2c,write_adrs(),dir_reg,(cur_mask&(~write_mask)));
+                        mgos_i2c_write_reg_b( i2c,write_adrs(), dir_reg, (cur_dir_mask&(~write_mask)) );
+			break;
+		//Input_pullup -> set dir and pu bits
+		case INPUT_PULLUP:
+			mgos_i2c_write_reg_b( i2c, write_adrs(), dir_reg, (cur_dir_mask|write_mask) );
+			mgos_i2c_write_reg_b( i2c, write_adrs(), dir_reg, (cur_pu_mask|write_mask) );
 			break;
 
 	}

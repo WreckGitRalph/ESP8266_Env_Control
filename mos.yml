@@ -24,6 +24,7 @@ config_schema:
   - ["i2c.enable",true]
   - ["i2c.sda_gpio",0]
   - ["i2c.scl_gpio",2]
+  - ["i2c.freq",800000]
 
 # These settings get compiled into the C structure, and can be accessed
 # from the C code this way:
@@ -45,7 +46,7 @@ libs:
   - origin: https://github.com/mongoose-os-libs/rpc-uart
   - origin: https://github.com/mongoose-os-libs/i2c
   - origin: https://github.com/mongoose-os-libs/mjs
-  - origin: https://github.com/mongoose-os-libs/dht
+    #  - origin: https://github.com/mongoose-os-libs/dht
 
 
 build_vars:

@@ -18,13 +18,26 @@
 #include "mgos.h"
 #include "gpio.h"
 #include "LCD.h"
-#include "DHT.h"
+#include "SHT20.h"
 
 enum mgos_app_init_result mgos_app_init(void) {
+  
   gpio_init();
   init_lcd();
   LOG(LL_INFO, ("App initialized"));
-  write_line("Test");
-  mgos_msleep(100);
+
+  char LCDBuff[33];
+  
+  float temp = sht20_read_temp();
+  float hum = sht20_read_humidity();
+
+  mgos_msleep(2000);
+
+  temp = sht20_read_temp();
+  hum = sht20_read_humidity();
+
+  sprintf( LCDBuff, "Temp: %10.2f\nHumidity: %6.2f", temp, hum );
+  write_line( LCDBuff);
+
   return MGOS_APP_INIT_SUCCESS;
 }

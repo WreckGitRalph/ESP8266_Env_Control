@@ -54,14 +54,20 @@ void write_char(char lcd_data, mode write_mode)
 	
 	uint8_t lcd_data_rev=0;
 
+	//if this was a new line character, go to line 2
+	if( lcd_data == '\n' ){
+		write_inst( CURSOR_LINE_2, write_mode );
+		return;
+	}
+
 	//first reverse the bits, because I wired the display weirdly
 	for (int i = 0; i < 8; i++) { 
         	if((lcd_data & (1 << i))) {
            		lcd_data_rev |= 1 << (7 - i);   
 		}
    	} 
-        cs_log_printf("Writing character %d to LCD\n",lcd_data);
-	cs_log_printf("Writing bits %d to LCD\n",lcd_data_rev);
+        //cs_log_printf("Writing character %d to LCD\n",lcd_data);
+	//cs_log_printf("Writing bits %d to LCD\n",lcd_data_rev);
 
 	lcd_data=lcd_data_rev;
 
@@ -115,13 +121,13 @@ void write_inst(LCD_instr inst,mode write_mode)
 	switch (write_mode){
 		case BITS8:
 			//we only use 4-bit for this device, so drop the 4 least significant bits and write to gpio	
-			cs_log_printf("Writing instruction %d to LCD\n",inst);
+			//cs_log_printf("Writing instruction %d to LCD\n",inst);
 			gpio_write=(gpio_state & gpio_mask)|((inst & 0x0F) << 2);
 			digitalWriteAll(gpio_write);
 			break;
 		case BITS4:
 			//write MSB first, then LSB
-			cs_log_printf("Writing instruction %d to LCD\n",inst);
+			//cs_log_printf("Writing instruction %d to LCD\n",inst);
 
 			gpio_write=(gpio_state & gpio_mask)|((inst & 0x0F) << 2);
                         digitalWriteAll(gpio_write);

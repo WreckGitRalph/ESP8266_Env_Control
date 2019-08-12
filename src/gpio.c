@@ -86,8 +86,8 @@ void digitalWriteAll(uint16_t pin_mask){
         uint8_t pins_b = (pin_mask >> 8);    //mask for GPIO bank B
         uint8_t pins_a = pin_mask & 0x00FF;        //mask for GPIO bank A
 
-	cs_log_printf("Writing %d to bank A\n",pins_a);
-	cs_log_printf("Writing %d to bank B\n",pins_b);
+	//cs_log_printf("Writing %d to bank A\n",pins_a);
+	//cs_log_printf("Writing %d to bank B\n",pins_b);
 
         //write bank A
         _Bool gpio_a = mgos_i2c_write_reg_b(i2c,write_adrs(),OLATA,pins_a);
